@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: hw-container
-        image: registry.digitalocean.com/personalweb/helloworld
+        image: <IMAGE> 
         ports:
         - containerPort: 8000

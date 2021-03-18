@@ -14,6 +14,8 @@ on:
 env:
   DO_REGISTRY: registry.digitalocean.com/personalweb
   DO_IMAGE: helloworld
+  CLUSTER_NAME: k8s-1-20-2-do-0-fra1-1615899691666
+  DEPLOYMENT_NAME: hw-deployment
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -42,3 +44,15 @@ jobs:
 
     - name: Push image to DigitalOcean Container Registry
       run: docker push ${DO_REGISTRY}/${DO_IMAGE}:$(echo $GITHUB_SHA | head -c7)
+
+    - name: Update deployment file
+      run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|'${DO_REGISTRY}'/'${DO_IMAGE}':'${TAG}'|' $GITHUB_WORKSPACE/config/deployment.yml
+
+    - name: Save DigitalOcean kubeconfig with short-lived credentials
+      run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${CLUSTER_NAME}
+
+    - name: Deploy to DigitalOcean Kubernetes
+      run: kubectl apply -f $GITHUB_WORKSPACE/config/deployment.yml
+
+    - name: Verify deployment
+      run: kubectl rollout status deployment/${DEPLOYMENT_NAME}
