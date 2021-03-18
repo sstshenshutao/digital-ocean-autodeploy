@@ -1,5 +1,3 @@
-# Use the official image as a parent image.
-FROM alpine
-
-# Run the specified command within the container.
-CMD [ "echo", "hello" ]
+FROM nginx
+COPY nginx-example/http.js /etc/nginx/http.js
+COPY nginx-example/nginx.conf /etc/nginx/nginx.conf

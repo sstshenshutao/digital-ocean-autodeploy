@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hw-deployment
+  labels:
+    app: hw
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: hw
+  template:
+    metadata:
+      labels:
+        app: hw
+    spec:
+      containers:
+      - name: hw-container
+        image: registry.digitalocean.com/personalweb/helloworld
+        ports:
+        - containerPort: 8000
