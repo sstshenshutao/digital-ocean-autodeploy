@@ -45,14 +45,23 @@ jobs:
     - name: Push image to DigitalOcean Container Registry
       run: docker push ${DO_REGISTRY}/${DO_IMAGE}:$(echo $GITHUB_SHA | head -c7)
 
-    - name: Update deployment file
-      run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|'${DO_REGISTRY}'/'${DO_IMAGE}':'${TAG}'|' $GITHUB_WORKSPACE/config/deployment.yml
-
     - name: Save DigitalOcean kubeconfig with short-lived credentials
       run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${CLUSTER_NAME}
 
-    - name: Deploy to DigitalOcean Kubernetes
-      run: kubectl apply -f $GITHUB_WORKSPACE/config/deployment.yml
+    - name: Set up Kustomize
+      run: |-
+        cd $GITHUB_WORKSPACE
+        curl -o $GITHUB_WORKSPACE/kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+        chmod u+x $GITHUB_WORKSPACE/kustomize
+
+    - name: Update deployment file and Deploy
+      run: |- 
+        cd $GITHUB_WORKSPACE/config
+        $GITHUB_WORKSPACE/kustomize edit set image '<IMAGE>'=${DO_REGISTRY}'/'${DO_IMAGE}':'${TAG}
+        $GITHUB_WORKSPACE/kustomize build . | kubectl apply -f
 
     - name: Verify deployment
       run: kubectl rollout status deployment/${DEPLOYMENT_NAME}
+
+    - name: Verify services 
+      run: kubectl get services -o wide
