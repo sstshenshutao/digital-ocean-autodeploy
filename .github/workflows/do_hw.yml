@@ -58,7 +58,7 @@ jobs:
       run: |- 
         cd $GITHUB_WORKSPACE/config
         $GITHUB_WORKSPACE/kustomize edit set image '<IMAGE>'=${DO_REGISTRY}'/'${DO_IMAGE}':'${TAG}
-        $GITHUB_WORKSPACE/kustomize build . | kubectl apply -f
+        $GITHUB_WORKSPACE/kustomize build . | kubectl apply -f -
 
     - name: Verify deployment
       run: kubectl rollout status deployment/${DEPLOYMENT_NAME}
